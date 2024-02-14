@@ -1,7 +1,7 @@
 import os
 import json
-import logging
-
+from win32api import MessageBox
+from win32con import MB_OK
 defaultConfig = {
 	"debug": False,
 	"log": "log\\log.log",
@@ -26,15 +26,24 @@ def load_config():
 	if not os.path.exists("config.json"):
 		with open("config.json", "w") as f:
 			f.write(json.dumps(defaultConfig))
-		return defaultConfig
-	with open("config.json", "r") as f:
-		file_config = json.loads(f.read())
+		return load_config()
+	try:
+		with open("config.json", "r") as f:
+			file_config = json.loads(f.read())
+	except:
+		with open("config.json", "w") as f:
+			f.write(json.dumps(defaultConfig))
+		return load_config()
 	if "nameList" not in file_config:
 		with open("config.json", "w") as f:
 			f.write(json.dumps(defaultConfig))
-		return defaultConfig
-	with open(file_config["nameList"], "r", encoding="utf-8") as f:
-		names = f.read()
+		return load_config()
+	try:
+		with open(file_config["nameList"], "r", encoding="utf-8") as f:
+			names = f.read()
+	except FileNotFoundError:
+		MessageBox(0,  "是哪个大聪明把名单给删了!?", "aaaa", MB_OK)
+		raise FileNotFoundError
 	names = names.split("\n")
 	temp = []
 	for x in range(len(names)):
@@ -46,20 +55,3 @@ def load_config():
 def save_config(config):
 	with open("config.json", "w") as f:
 		f.write(json.dumps(config))
-
-
-if __name__ == "__main__":
-	config = load_config()
-	logger = logging.getLogger()
-	logger.setLevel(logging.DEBUG if config["debug"] else logging.INFO)
-	sh = logging.StreamHandler()
-	sh.setLevel(logging.DEBUG if config["debug"] else logging.INFO)
-	fh = logging.FileHandler(filename=config["log"])
-	fh.setLevel(logging.DEBUG)
-	fmt = logging.Formatter(fmt="%(asctime)s {%(name)s} [%(levelname)-9s] %(filename)-8s - %(message)s",
-	                        datefmt="%Y/%m/%d %H:%M:%S")
-	sh.setFormatter(fmt)
-	fh.setFormatter(fmt)
-	logger.addHandler(sh)
-	logger.addHandler(fh)
-	logging.critical("You Shouldn't Run This File")

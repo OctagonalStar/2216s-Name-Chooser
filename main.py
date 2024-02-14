@@ -1,5 +1,4 @@
 from tkinter import *
-import logging
 import os.path
 import time
 import bin.configLoader as configLoader

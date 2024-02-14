@@ -1,3 +1,4 @@
 opencv-python==4.9.0.80
 pillow==10.2.0
 tkvideoplayer==2.8
+pywin32==306

@@ -5,12 +5,6 @@ import os
 import tkinter.font
 from typing import Optional
 
-# 检查log文件夹是否存在
-if not os.path.exists("log"):
-    os.mkdir("log")
-if not os.path.exists("log\\log.log"):
-    with open("log\\log.log", "w") as f:
-        f.write("")
 
 
 class SideLoad(object):
@@ -84,19 +78,3 @@ class SideLoad(object):
         self.module_button.after_cancel(self._timer)
         self._timer = None
 
-
-if __name__ == '__main__':
-    debugMode = True
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    sh = logging.StreamHandler()
-    sh.setLevel(logging.DEBUG if debugMode else logging.INFO)
-    fh = logging.FileHandler(filename="log\\log.log")
-    fh.setLevel(logging.DEBUG)
-    fmt = logging.Formatter(fmt="%(asctime)s {%(name)s} [%(levelname)-9s] %(filename)-8s - %(message)s",
-                            datefmt="%Y/%m/%d %H:%M:%S")
-    sh.setFormatter(fmt)
-    fh.setFormatter(fmt)
-    logger.addHandler(sh)
-    logger.addHandler(fh)
-    SideLoad("right", lambda: print("hello world"))
