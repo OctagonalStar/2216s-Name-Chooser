@@ -29,12 +29,15 @@ def func(button: sideLoad.Button, root) -> None:
     root.overrideredirect(True)
     root.attributes("-topmost", True)
     chosen = random.choice(config["nameList"])
-    logging.debug("完成随机选择: %s" % chosen)
+    # logging.debug("完成随机选择: %s" % chosen)
     gold = False
     if chosen[0] == "|":
         gold = True
         chosen = chosen[1:]
-    chosen = [chosen[:chosen.find(" ")], chosen[chosen.find(" ") + 1:]]
+    if " " in chosen:
+        chosen = [chosen[:chosen.find(" ")], chosen[chosen.find(" ") + 1:]]
+    else:
+        chosen = [chosen]
     if len(chosen) == 1:
         name = chosen[0]
         into = "这个人很神秘 什么都没有写"
@@ -66,8 +69,6 @@ def func(button: sideLoad.Button, root) -> None:
     img_label.place(x=1000, y=50)
     text1_label.place(x=0, y=350)
     text2_label.place(x=0, y=490)
-    img_label.lift()
-    img_label.place(x=1000, y=50)
     nonlinear.move_right_animation(img_label, 1200, -350, img=img)
     time.sleep(0.1)
     nonlinear.move_right_animation(text1_label, 900, 300)
@@ -91,7 +92,8 @@ def func(button: sideLoad.Button, root) -> None:
 
 def on_board(button, root):
     chosen = random.choice(config["nameList"])
-    chosen = chosen[:chosen.find(" ")]
+    if " " in chosen:
+        chosen = chosen[:chosen.find(" ")]
     if chosen[0] == "|":
         chosen = chosen[1:]
     temp = ""
