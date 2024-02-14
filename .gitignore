@@ -240,4 +240,8 @@ cython_debug/
 #.idea/
 
 
-# res/name.txt
+res/name.txt
+
+#pyinstaller outout
+build
+dist
