@@ -17,11 +17,11 @@ def resize_image(image_path, height):
 
 def func1():
     vp = videoPlay.video_play(root, config["goldVideoPath"] if gold else config["purpleVideoPath"])
-    sleep(1)
+    sleep(5)
     while True:
         if vp.is_paused():
             break
-        sleep(0.01)
+        sleep(0.05)
     vp.place_forget()
     img = resize_image(file, 650)
     img_label = Label(root, image=img, bg="#272733")
