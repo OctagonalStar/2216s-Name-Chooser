@@ -44,13 +44,11 @@ def func(button: sideLoad.Button, root) -> None:
         name = chosen[0]
         into = chosen[1]
     vp = videoPlay.video_play(root, config["goldVideoPath"] if gold else config["purpleVideoPath"])
-    time.sleep(5)
+    time.sleep(4)
     while True:
         if vp.is_paused():
             break
-        time.sleep(0.05)
-    vp.place_forget()
-    vp.destroy()
+        time.sleep(0.02)
     if os.path.exists("res\\pic\\%s.png" % name):
         file = "res\\pic\\%s.png" % name
     else:
