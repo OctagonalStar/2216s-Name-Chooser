@@ -1,35 +1,17 @@
 from tkinter import *
 import threading
-import logging
-import os
-import tkinter.font
 from typing import Optional
-
+from bin.configLoader import Config
 
 
 class SideLoad(object):
-    def __init__(self, side: str, call: callable, call2: Optional[callable] = None, **kwargs) -> None:
+    def __init__(self, cfg: Config, random, call: callable, call2: Optional[callable] = None) -> None:
         self.thread = None
-        self.side = side
+        self.random = random
+        self.side = cfg.side_load.side
         self.call = call
-        self._timer = False
-
-        if "wide" in kwargs:
-            self.wide = kwargs["wide"]
-        else:
-            self.wide = 50
-        if "high" in kwargs:
-            self.high = kwargs["high"]
-        else:
-            self.high = 150
-        if "button" in kwargs:
-            button = kwargs["button"]
-        else:
-            button = "Run"
-        if "font" in kwargs:
-            self.font = kwargs["font"]
-        else:
-            self.font = ("微软雅黑", 20, tkinter.font.BOLD)
+        self.config = cfg
+        self._timer = None
         if call2:
             self.call2 = call2
         else:
@@ -38,43 +20,24 @@ class SideLoad(object):
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
         self.root.attributes("-alpha", 0.4)
-        self.button = button
-        if side == "left":
-            self.pos = (self.wide, self.high, 0, (self.root.winfo_screenheight() - self.high) / 2)
-        elif side == "right":
-            self.pos = (self.wide, self.high, self.root.winfo_screenwidth() - self.wide,
-                        (self.root.winfo_screenheight() - self.high) / 2)
+        if self.config.side_load.side == "left":
+            self.pos = (self.config.side_load.wide, self.config.side_load.high, 0, (self.root.winfo_screenheight() -
+                                                                                    self.config.side_load.high) / 2)
         else:
-            logging.warning("side must be 'left' or 'right', default to 'right'")
-            self.pos = (self.wide, self.high, self.root.winfo_screenwidth() - self.wide,
-                        (self.root.winfo_screenheight() - self.high) / 2)
+            self.pos = (self.config.side_load.wide, self.config.side_load.high, self.root.winfo_screenwidth() -
+                        self.config.side_load.wide, (self.root.winfo_screenheight() - self.config.side_load.high) / 2)
         self.root.geometry("%ix%i+%i+%i" % self.pos)
-        self.module_button = Button(self.root, text=self.button, font=self.font)
-        self.module_button.bind("<Button-1>", self._on_push)
-        self.module_button.bind("<ButtonRelease-1>", self._on_release)
+        self.module_button = Button(self.root, text=self.config.side_load.button, font=self.config.side_load.font)
+        self.module_button.bind("<ButtonRelease-1>", self.left)
+        self.module_button.bind("<ButtonRelease-3>", self.right)
         self.module_button.pack(fill=X, expand=True)
-        logging.info("Start up SideLoad UI successfully")
         self.root.mainloop()
 
-    def run_module(self):
-        logging.info("Start call %s module" % self.call.__name__)
-        self.thread = threading.Thread(target=self.call, args=(self.module_button, self.root))
+    def left(self, _):
+        self.thread = threading.Thread(target=self.call, args=(self.module_button, self.root, self.config, self.random))
         self.thread.start()
 
-    def _on_push(self, event):
-        if not self._timer:
-            self._timer = self.module_button.after(500, self._long_press)
-
-    def _on_release(self, event):
-        if self._timer:
-            self.run_module()
-            self.module_button.after_cancel(self._timer)
-            self._timer = None
-
-    def _long_press(self):
-        logging.info("Start call2 %s module" % self.call2.__name__)
-        self.thread = threading.Thread(target=self.call2, args=(self.module_button, self.root))
+    def right(self, _):
+        self.thread = threading.Thread(target=self.call2,
+                                       args=(self.module_button, self.root, self.config, self.random))
         self.thread.start()
-        self.module_button.after_cancel(self._timer)
-        self._timer = None
-

@@ -2,9 +2,9 @@ from tkinter import *
 from tkVideoPlayer import TkinterVideo
 
 
-def video_play(root, file_path):
-	videoplayer = TkinterVideo(master=root)
-	videoplayer.load(file_path)
+def video_play(_root, _file_path):
+	videoplayer = TkinterVideo(master=_root)
+	videoplayer.load(_file_path)
 	videoplayer.place(x=0, y=0, relwidth=1, relheight=1)
 	videoplayer.play()
 	return videoplayer

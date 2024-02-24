@@ -1,0 +1,73 @@
+{
+  "debug": {
+    "enabled": false,
+    "seed": null
+  },
+  "sideLoad": {
+    "wide": 50,
+    "high": 100,
+    "side": "right",
+    "button": "点\n名",
+    "font": ["微软雅黑", 20, "bold"]
+  },
+  "nameList": {
+    "path": null,
+    "preventDuplication": true,
+    "preventSimilarities": {
+      "enabled": true,
+      "threshold": 0.8
+    },
+    "doubleCheck": {
+      "enabled": true,
+      "trict": false,
+      "info": true,
+      "nameList": []
+    },
+    "hardCodeCheck": {
+      "enabled": false,
+      "trict": false,
+      "info": true
+    },
+    "dynamicLoad": true
+  },
+  "animation": {
+    "enabled": true,
+    "diff": true,
+    "diffSymbol": "|",
+    "delayPauseCheck": 3,
+    "goldVideo": null,
+    "purpleVideo": null,
+    "doubleClickSkip": true
+  },
+  "endPage": {
+    "showInto": true,
+    "showPic": true,
+    "animation": true,
+    "noLiner": true,
+    "font1": ["微软雅黑", 50, "bold"],
+    "font2": ["微软雅黑", 20, "bold"],
+    "font3": ["微软雅黑", 17, "bold"],
+    "defaultPic": null,
+    "closeTime": 3,
+    "backgroundColor": "#272733",
+    "backgroundImg": null
+  },
+  "random": {
+    "optimizeRandom": false,
+    "decreaseRepeat": true,
+    "deleteRepeat": false
+  },
+  "global": {
+    "multi-instancePrevent": true,
+    "defaultMode": "sideLoad"
+  },
+  "testFeatures": {
+    "jpgSupport": false,
+    "multi-starEnable": false,
+    "dynamicConfigLoad": false,
+    "globalNotification": {
+      "enabled": false,
+      "message": null
+    }
+  }
+}
