@@ -162,12 +162,12 @@ if __name__ == "__main__":
                 devices = wmiService.ExecQuery("SELECT * FROM Win32_PnPEntity")
                 allow = False
                 for device in devices:
-                    if "USB\\VID_0C76&PID_2131" in device.DeviceID:
+                    if "#这里是你的硬件ID 自行修改 可在设备管理器中查看#" in device.DeviceID:
                         allow = True
                 if not allow:
                     print("硬件密钥ID 验证失败")
                     pwd = input("请输入动态密钥:")
-                    if int(pwd) != int(datetime.datetime.now().strftime("%H%M")) + 7:
+                    if int(pwd) != int(datetime.datetime.now().strftime("%H%M")):
                         print("动态密钥 验证失败")
                     else:
                         allow = True
