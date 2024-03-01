@@ -25,9 +25,16 @@ def linear_out(c, i, d):
     return c / (d / i)
 def nonlinear_animation(sub, tim=500, tax=100, img: Optional[PhotoImage] = None):
     start_x = int(sub.winfo_x())
+    # Bug #0001
+    # 由于控件动画通过after进行位移
+    # 在实际执行中after中函数可能在控件位置初始化前执行
+    # 从而导致左移控件向窗口左边缘外偏移 而右向控件偏移量减少
+    # #0001 Patch
+    # ----------------
     while start_x <= 0 and img:
         time.sleep(0.02)
         start_x = int(sub.winfo_x())
+    # ----------------
     duration = tim  # 持续时间（毫秒）
 
     def animate(t):
@@ -62,9 +69,15 @@ def linear_animation(sub, tim=500, tax=100, img: Optional[PhotoImage] = None):
 
     animate(0)
 
-def animation(cfg: Config, sub, tim=500, tax=100, img: Optional[PhotoImage] = None):
-    if cfg.end_page.animation:
-        if cfg.end_page.no_liner:
+def animation(cfg: [Config, bool], sub, tim=500, tax=100, img: Optional[PhotoImage] = None):
+    if type(cfg) is bool:
+        if cfg:
             nonlinear_animation(sub, tim, tax, img)
         else:
             linear_animation(sub, tim, tax, img)
+    else:
+        if cfg.end_page.animation:
+            if cfg.end_page.no_liner:
+                nonlinear_animation(sub, tim, tax, img)
+            else:
+                linear_animation(sub, tim, tax, img)

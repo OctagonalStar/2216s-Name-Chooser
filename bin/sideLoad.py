@@ -2,7 +2,7 @@ from tkinter import *
 import threading
 from typing import Optional
 from bin.configLoader import Config
-
+import multiprocessing
 
 class SideLoad(object):
     def __init__(self, cfg: Config, random, call: callable, call2: Optional[callable] = None) -> None:
@@ -16,6 +16,8 @@ class SideLoad(object):
             self.call2 = call2
         else:
             self.call2 = print
+        if self.config.test_features.multi_process:
+            self.processes_pool = multiprocessing.Pool(processes=4)
         self.root = Tk()
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
@@ -34,10 +36,50 @@ class SideLoad(object):
         self.root.mainloop()
 
     def left(self, _):
-        self.thread = threading.Thread(target=self.call, args=(self.module_button, self.root, self.config, self.random))
-        self.thread.start()
+        if self.config.test_features.multi_process:
+            chosen = self.random.choice(self.config.name_list.list)
+            cfg = {
+                "animation": {
+                        "enabled": self.config.animation.enabled,
+                        "delayPauseCheck": self.config.animation.delay_pause_check,
+                        "video": self.config.animation.gold_video if chosen["gold"] and self.config.animation.diff
+                        else self.config.animation.purple_video,
+                        "doubleClickSkip": self.config.animation.double_click_skip
+                    },
+                "endPage": {
+                    "showInto": self.config.end_page.show_into,
+                    "showPic": self.config.end_page.show_pic,
+                    "animation": self.config.end_page.animation,
+                    "noLiner": self.config.end_page.no_liner,
+                    "font1": self.config.end_page.font1,
+                    "font2": self.config.end_page.font2,
+                    "font3": self.config.end_page.font3,
+                    "defaultPic": self.config.end_page.default_pic,
+                    "closeTime": self.config.end_page.close_time,
+                    "backgroundColor": self.config.end_page.background_color,
+                    "backgroundImg": self.config.end_page.background_img
+                },
+                "testFeatures": {
+                    "multi-starEnable": self.config.test_features.multi_star_enable,
+                    "globalNotification": {
+                        "enabled": self.config.test_features.global_notification.enabled,
+                        "message": self.config.test_features.global_notification.message
+                    }
+                }
+            }
+            process = multiprocessing.Process(target=self.call, args=(chosen, cfg))
+            process.start()
+            process.join()
+        else:
+            self.thread = threading.Thread(target=self.call,
+                                           args=(self.module_button, self.root, self.config, self.random))
+            self.thread.start()
 
     def right(self, _):
         self.thread = threading.Thread(target=self.call2,
                                        args=(self.module_button, self.root, self.config, self.random))
         self.thread.start()
+
+
+if __name__ == "__main__":
+    multiprocessing.freeze_support()

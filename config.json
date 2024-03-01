@@ -1,1 +1,74 @@
-{"debug": false, "log": "log\\log.log", "defaultMode": "sideLoad", "nameList": "res\\name.txt", "goldVideoPath": "res\\gold.mp4", "purpleVideoPath": "res\\purple.mp4", "font1": ["\u5fae\u8f6f\u96c5\u9ed1", 50, "bold"], "font2": ["\u5fae\u8f6f\u96c5\u9ed1", 20, "bold"], "font3": ["\u5fae\u8f6f\u96c5\u9ed1", 17, "bold"], "sideLoad": {"wide": 50, "high": 100, "side": "right", "button": "\u70b9\n\u540d", "font": ["\u5fae\u8f6f\u96c5\u9ed1", 20, "bold"]}}
+{
+  "debug": {
+    "enabled": false,
+    "seed": null
+  },
+  "sideLoad": {
+    "wide": 50,
+    "high": 100,
+    "side": "right",
+    "button": "点\n名",
+    "font": ["微软雅黑", 20, "bold"]
+  },
+  "nameList": {
+    "path": "res/name.txt",
+    "preventDuplication": true,
+    "preventSimilarities": {
+      "enabled": true,
+      "threshold": 0.8
+    },
+    "doubleCheck": {
+      "enabled": true,
+      "trict": false,
+      "info": true,
+      "nameList": ["张三", "李四", "二次检查中缺少的名字"]
+    },
+    "hardCodeCheck": {
+      "enabled": true,
+      "trict": false,
+      "info": true
+    },
+    "dynamicLoad": true
+  },
+  "animation": {
+    "enabled": true,
+    "diff": true,
+    "diffSymbol": "|",
+    "delayPauseCheck": 3,
+    "goldVideo": "res/gold.mp4",
+    "purpleVideo": "res/purple.mp4",
+    "doubleClickSkip": true
+  },
+  "endPage": {
+    "showInto": true,
+    "showPic": true,
+    "animation": true,
+    "noLiner": true,
+    "font1": ["微软雅黑", 50, "bold"],
+    "font2": ["微软雅黑", 20, "bold"],
+    "font3": ["微软雅黑", 17, "bold"],
+    "defaultPic": "res\\pic\\default.png",
+    "closeTime": 3,
+    "backgroundColor": "#272733",
+    "backgroundImg": null
+  },
+  "random": {
+    "optimizeRandom": false,
+    "decreaseRepeat": true,
+    "deleteRepeat": false
+  },
+  "global": {
+    "multi-instancePrevent": true,
+    "defaultMode": "sideLoad"
+  },
+  "testFeatures": {
+    "jpgSupport": false,
+    "multi-starEnable": false,
+    "dynamicConfigLoad": false,
+    "multi-process": false,
+    "globalNotification": {
+      "enabled": false,
+      "message": null
+    }
+  }
+}

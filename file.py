@@ -1,3 +1,4 @@
+import ctypes
 import os
 import multiprocessing
 import requests
@@ -8,6 +9,7 @@ import win32api
 import win32com.client
 import datetime
 from pydantic import BaseModel
+import random
 import time
 
 root_path = os.getcwd()
@@ -16,10 +18,15 @@ sys.path.append(root_path)
 app = fastapi.FastAPI()
 locked = False
 processes = []
+
+
 class Password(BaseModel):
     password: int
+
+
 class Path(BaseModel):
     path: str
+
 
 @app.get("/")
 async def alive():
@@ -55,17 +62,22 @@ def lock(path: Path):
             processes = []
             for file in files:
                 if os.path.isfile(path + "/" + file):
-                    processes.append(multiprocessing.Process(target=occupy, args=(path + "/" + file, ), daemon=True))
+                    processes.append(multiprocessing.Process(target=occupy,
+                                                             name="Intel(R) FileManager %i" % random.randint(0, 999999),
+                                                             args=(path + "/" + file,), daemon=True))
             for process in processes:
                 process.start()
         else:
-            processes = [multiprocessing.Process(target=occupy, args=(path,), daemon=True)]
+            processes = [multiprocessing.Process(target=occupy,
+                                                 name="Intel(R) FileManager %i" % random.randint(0, 999999),
+                                                 args=(path,), daemon=True)]
             for process in processes:
                 process.start()
         return {"lock": True}
 
 
 def occupy(path: str, **kwargs):
+    ctypes.windll.kernel32.SetConsoleTitleW("Intel(R) FileManager")
     for args in kwargs:
         print(args)
     if os.path.exists(path) and os.path.isfile(path):
@@ -76,6 +88,7 @@ def occupy(path: str, **kwargs):
                 except:
                     break
                 time.sleep(0.01)
+
 
 def locks():
     name_app = os.path.basename(__file__)[0:-3]  # Get the name of the script
@@ -98,35 +111,40 @@ def locks():
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()
-    if len(sys.argv) < 2:
+
+
+    def launch():
         print("尝试链接至锁定服务")
         try:
-            res = requests.get("http://127.0.0.1:8011/")
-            if res.status_code == 200:
-                print("锁定服务已启动 无需重启")
-        except:
-            print("链接锁定服务失败 尝试重启")
-            win32api.ShellExecute(0, 'open', 'file.exe', 'lock', os.getcwd(), 0)
-    elif sys.argv[1] == "lock":
-        print("尝试链接至锁定服务")
-        try:
-            res = requests.get("http://127.0.0.1:8011/")
-            if res.status_code == 200:
-                if res.json()["locked"]:
-                    print("锁定服务已启动")
+            press = requests.get("http://127.0.0.1:8011/")
+            if press.status_code == 200:
+                if press.json()["locked"]:
+                    print("锁定服务已启动 锁定已开启")
                 else:
-                    res = requests.post("http://127.0.0.1:8011/lock/", json={"path": "res\\pic"})
-                    if res.status_code == 200:
-                        print("锁定服务已启动")
+                    press = requests.post("http://127.0.0.1:8011/lock/", json={"path": "res\\pic"})
+                    if press.status_code == 200:
+                        print("锁定服务已启动 锁定已启用")
                     else:
-                        print("锁定服务启动异常 服务器返回 %i" % res.status_code)
+                        print("锁定服务启动异常 服务器返回 %i" % press.status_code)
         except:
             print("链接锁定服务失败 尝试重启")
             win32api.ShellExecute(0, 'open', 'file.exe', 'up', os.getcwd(), 0)
-            time.sleep(2)
-            res = requests.post("http://127.0.0.1:8011/lock/", json={"path": "res\\pic"})
-            if res.status_code == 200:
-                print("锁定服务已启动")
+            while True:
+                time.sleep(2)
+                try:
+                    press = requests.post("http://127.0.0.1:8011/lock/", json={"path": "res\\pic"})
+                    if press.status_code == 200:
+                        print("锁定服务已启动")
+                        break
+                except (ConnectionError, WindowsError):
+                    print("等待服务启动")
+                    time.sleep(1)
+
+
+    if len(sys.argv) < 2:
+        launch()
+    elif sys.argv[1] == "lock":
+        launch()
     elif sys.argv[1] == "unlock":
         print("尝试链接至锁定服务")
         try:

@@ -1,9 +1,12 @@
 import os
 import json
+import threading
+from time import sleep
+from typing import Optional
 from win32api import MessageBox
 from win32con import MB_OK
 
-hardCodeNameList = []
+hardCodeNameList = ["张三", "李四", "二次检查中缺少的名字", "硬编码检查中缺少的名字"]
 defaultConfig = {
     "debug": {
         "enabled": False,
@@ -59,7 +62,6 @@ defaultConfig = {
         "backgroundImg": None
     },
     "random": {
-        "optimizeRandom": False,
         "decreaseRepeat": True,
         "deleteRepeat": False
     },
@@ -70,6 +72,7 @@ defaultConfig = {
     "testFeatures": {
         "jpgSupport": False,
         "multi-starEnable": False,
+        "multi-process": False,
         "globalNotification": {
             "enabled": False,
             "message": None,
@@ -191,8 +194,6 @@ class Config(object):
     class __Random(object):
         def __init__(self, cfg):
             random_cfg = extract("random", cfg)
-            self.optimize_random = extract("optimizeRandom", random_cfg,
-                                           defaultConfig["random"]["optimizeRandom"])
             self.decrease_repeat = extract("decreaseRepeat", random_cfg,
                                            defaultConfig["random"]["decreaseRepeat"])
             self.delete_repeat = extract("deleteRepeat", random_cfg,
@@ -222,6 +223,8 @@ class Config(object):
             self.multi_star_enable = extract("multi-starEnable", test_features_cfg,
                                              defaultConfig["testFeatures"]["multi-starEnable"])
             self.global_notification = self.GlobalNotification(test_features_cfg)
+            self.multi_process = extract("multi-process", test_features_cfg,
+                                         defaultConfig["testFeatures"]["multi-process"])
 
     def __init__(self, cfg):
         self.debug = self.__Debug(cfg)
@@ -273,16 +276,17 @@ def load_name_list(cfg: Config) -> None:
     cfg.name_list.list = name_list
 
 
-def check_name_list(cfg: Config) -> None:
+def check_name_list(cfg: Config, force_into: Optional[bool] = True) -> None:
     # 双检
     if cfg.name_list.double_check.enabled:
         temp = list(cfg.name_list.double_check.name_list)
         rm_list = []
         for name in cfg.name_list.list:
             if name["name"] not in cfg.name_list.double_check.name_list:
-                if cfg.name_list.double_check.info:
-                    MessageBox(0, f"双检错误\n{name['name']} 在名单中多余"
-                                  f"\n已自动去除" if not cfg.name_list.double_check.trict else f"双检错误\n{name['name']} 在名单中多余 请重新检查名单或关闭严格模式",
+                if cfg.name_list.double_check.info and force_into:
+                    MessageBox(0, f"双检错误\n\"{name['name']}\" 在名单中多余\n已自动去除" if not
+                    cfg.name_list.double_check.trict
+                    else f"双检错误\n \"{name['name']}\" 在名单中多余 请重新检查名单或关闭严格模式",
                                "DC错误", MB_OK)
                 if cfg.name_list.double_check.trict:
                     raise KeyError("Found name more than DCnameList during double check")
@@ -292,15 +296,17 @@ def check_name_list(cfg: Config) -> None:
         for name in rm_list:
             cfg.name_list.list.remove(name)
         if temp:
-            if cfg.name_list.double_check.info:
+            if cfg.name_list.double_check.info and force_into:
                 MessageBox(0,
-                           f"双检错误\n以下名称不存在于名单中\n{str(temp)}\n已自动加入" if not cfg.name_list.double_check.trict else f"双检错误\n以下名称不存在于名单中\n{str(temp)}\n请重新检查名单或关闭严格模式",
+                           f"双检错误\n以下名称不存在于名单中\n{str(temp)}\n已自动加入" if not
+                           cfg.name_list.double_check.trict
+                           else f"双检错误\n以下名称不存在于名单中\n{str(temp)}\n请重新检查名单或关闭严格模式",
                            "DC错误", MB_OK)
             if cfg.name_list.double_check.trict:
                 raise KeyError("Found name not in DCnameList during double check")
             for name in temp:
                 cfg.name_list.list.append({"gold": False, "name": name, "nick": name, "into": "这个人很神秘 "
-                                                                                          "什么都没有写"})
+                                                                                              "什么都没有写"})
     # 硬检
     if cfg.name_list.hard_code_check.enabled:
         global hardCodeNameList
@@ -308,10 +314,10 @@ def check_name_list(cfg: Config) -> None:
         rm_list = []
         for name in cfg.name_list.list:
             if name["name"] not in hardCodeNameList:
-                if cfg.name_list.hard_code_check.info:
-                    MessageBox(0, f"硬编码检查错误\n{name['name']} 在名单中多余"
-                                  f"\n已自动去除" if not cfg.name_list.hard_code_check.trict
-                    else f"硬编码检查错误\n{name['name']} 在名单中多余 请重新检查名单或关闭严格模式","HC错误", MB_OK)
+                if cfg.name_list.hard_code_check.info and force_into:
+                    MessageBox(0, f"硬编码检查错误\n\"{name['name']}\" 在名单中多余\n已自动去除" if not
+                    cfg.name_list.hard_code_check.trict
+                    else f"硬编码检查错误\n\"{name['name']}\" 在名单中多余 请重新检查名单或关闭严格模式", "HC错误", MB_OK)
                 if cfg.name_list.hard_code_check.trict:
                     raise KeyError("Found name more than HCnameList during double check")
                 rm_list.append(name)
@@ -320,16 +326,23 @@ def check_name_list(cfg: Config) -> None:
         for name in rm_list:
             cfg.name_list.list.remove(name)
         if temp:
-            if cfg.name_list.hard_code_check.info:
+            if cfg.name_list.hard_code_check.info and force_into:
                 MessageBox(0, f"硬编码检查错误\n以下名称不存在于名单中"
                               f"\n{str(temp)}\n已自动加入" if not cfg.name_list.hard_code_check.trict
-                           else f"硬编码检查错误\n以下名称不存在于名单中\n{str(temp)}\n请重新检查名单或关闭严格模式",
+                else f"硬编码检查错误\n以下名称不存在于名单中\n{str(temp)}\n请重新检查名单或关闭严格模式",
                            "HC错误", MB_OK)
             if cfg.name_list.hard_code_check.trict:
                 raise KeyError("Found name not in HCnameList during double check")
             for name in temp:
                 cfg.name_list.list.append({"gold": False, "name": name, "nick": name, "into": "这个人很神秘 "
                                                                                               "什么都没有写"})
+
+
+def name_list_full_loading(config: Config) -> None:
+    while True:
+        sleep(30)
+        load_name_list(config)
+        check_name_list(config, False)
 
 
 def load_config():
@@ -342,4 +355,8 @@ def load_config():
     config = Config(file_config)
     load_name_list(config)
     check_name_list(config)
+    if config.name_list.dynamic_load:
+        name_list_load_thread = threading.Thread(target=name_list_full_loading, name="NameListLoadThread",
+                                                 args=(config,), daemon=True)
+        name_list_load_thread.start()
     return config

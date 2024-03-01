@@ -1,4 +1,5 @@
 import difflib
+import threading
 import bin.nonlinear as nonlinear
 from bin.configLoader import Config
 from bin.randomName import Random
@@ -6,6 +7,7 @@ import bin.videoPlay as videoPlay
 from tkinter import *
 import os.path
 import time
+import gc
 from PIL import Image, ImageTk
 
 
@@ -22,8 +24,8 @@ def func(button: Button, root, config: Config, random: Random) -> None:
     click = False
     skip = False
     destroy_list = []
-    info_label = Label(root, text="在\n抽", font=config.end_page.font3)
     button.pack_forget()
+    info_label = Label(root, text="在\n抽", font=config.end_page.font3)
     info_label.pack(expand=True, fill=X)
     chosen = random.choice(config.name_list.list)
     if difflib.SequenceMatcher(None, chosen["name"], chosen["nick"]).quick_ratio() < 0.6:
@@ -58,6 +60,7 @@ def func(button: Button, root, config: Config, random: Random) -> None:
             else:
                 click = True
                 root.after(500, unclick)
+
         # 双击跳过
         if config.animation.double_click_skip:
             vp.bind("<ButtonRelease-1>", wait_double_click)
@@ -114,14 +117,113 @@ def func(button: Button, root, config: Config, random: Random) -> None:
         sta_label = Label(root, image=sta_img, bg=config.end_page.background_color)
         sta_label.place(x=0, y=445)
         sta_label.lift()
-        nonlinear.animation(config, sta_label, 900, 350 + i * 30)
+        if config.end_page.animation:
+            nonlinear.animation(config, sta_label, 900, 350 + i * 30)
     info_label.pack_forget()
     button.pack(expand=True, fill=X)
     time.sleep(config.end_page.close_time - 0.5)
     root.withdraw()
     destroy_list.append(root)
+    del img, vp
+    gc.collect()
     for i in destroy_list:
         i.destroy()
+
+
+def process_func(chosen: dict, config: dict):
+    def sub_func():
+        if config["animation"]["enabled"]:
+            vp = videoPlay.video_play(root, config["animation"]["video"])
+            skip = False
+            click = False
+
+            def wait_double_click(_):
+                nonlocal skip, click, vp, root
+
+                def unclick():
+                    nonlocal click
+                    click = False
+
+                if click:
+                    vp.pause()
+                    skip = True
+                else:
+                    click = True
+                    root.after(500, unclick)
+
+            # 双击跳过
+            if config["animation"]["doubleClickSkip"]:
+                vp.bind("<ButtonRelease-1>", wait_double_click)
+            for _ in range(config["animation"]["delayPauseCheck"] * 50):
+                time.sleep(0.02)
+                if skip:
+                    break
+            while True:
+                if vp.is_paused():
+                    break
+                time.sleep(0.02)
+            vp.place_forget()
+        if config["endPage"]["showPic"]:
+            img = resize_image(file, 650)
+            img_label = Label(root, image=img, bg=config["endPage"]["backgroundColor"])
+            img_label.place(x=1000, y=50)
+            if config["endPage"]["animation"]:
+                nonlinear.animation(config["endPage"]["noLiner"], img_label, 1200, -350, img=img)
+        if config["endPage"]["showInto"]:
+            text2_label = Label(root, text=into, fg="white", bg=config["endPage"]["backgroundColor"],
+                                font=config["endPage"]["font2"])
+            text2_label.place(x=0, y=490)
+            if config["endPage"]["animation"]:
+                nonlinear.animation(config["endPage"]["noLiner"], text2_label, 950, 250)
+        text1_label = Label(root, text=chosen["nick"], fg="white", bg=config["endPage"]["backgroundColor"],
+                            font=config["endPage"]["font1"])
+        text1_label.place(x=0, y=350)
+        if config["endPage"]["animation"]:
+            nonlinear.animation(config["endPage"]["noLiner"], text1_label, 900, 300)
+        if config["testFeatures"]["globalNotification"]["enabled"] and \
+                config["testFeatures"]["globalNotification"]["message"]:
+            notification_label = Label(root, text=config["testFeatures"]["globalNotification"]["message"], fg="white",
+                                       bg=config["endPage"]["backgroundColor"], font=config["endPage"]["font2"],
+                                       anchor="nw", justify="left")
+            notification_label.place(x=0, y=50)
+            time.sleep(0.05)
+            nonlinear.animation(config, notification_label, 950, 50)
+        time.sleep(0.15)
+        starts = 4
+        if chosen["gold"] and isinstance(chosen["gold"], bool):
+            starts = 5
+        elif isinstance(chosen["gold"], int) and config["testFeatures"]["multi-starEnable"]:
+            starts = chosen["gold"]
+        sta_img = resize_image("res\\pic\\star.png", 30)
+        for i in range(starts):
+            sta_label = Label(root, image=sta_img, bg=config["endPage"]["backgroundColor"])
+            sta_label.place(x=0, y=445)
+            sta_label.lift()
+            if config["endPage"]["animation"]:
+                nonlinear.animation(config["endPage"]["noLiner"], sta_label, 900, 350 + i * 30)
+        time.sleep(config["endPage"]["closeTime"] - 0.5)
+        root.withdraw()
+        root.quit()
+        del img, vp
+        gc.collect()
+
+    if difflib.SequenceMatcher(None, chosen["name"], chosen["nick"]).quick_ratio() < 0.6:
+        into = f"[原名:{chosen['name']}] " + chosen["into"]
+    else:
+        into = chosen["into"]
+    if os.path.exists("res\\pic\\%s.png" % chosen["name"]):
+        file = "res\\pic\\%s.png" % chosen["name"]
+    else:
+        file = config["endPage"]["defaultPic"]
+
+    root = Tk()
+    root.config(bg=config["endPage"]["backgroundColor"])
+    root.geometry("1280x720+%i+%i" % ((root.winfo_screenwidth() - 1280) / 2, (root.winfo_screenheight() - 720) / 2))
+    root.overrideredirect(True)
+    root.attributes("-topmost", True)
+    t1 = threading.Thread(target=sub_func, daemon=True)
+    root.after(5, lambda: t1.start())
+    root.mainloop()
 
 
 def on_board(button, root, config: Config, random: Random):

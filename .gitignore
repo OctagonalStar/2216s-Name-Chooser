@@ -241,5 +241,3 @@ cython_debug/
 
 #pyinstaller outout
 build
-dist!/res/name.txt
-!/config.json
