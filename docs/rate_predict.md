@@ -25,8 +25,8 @@ $$
 
 $$
 P =  \begin{cases}
- 0,\,\,y>0\\
- 1-\frac{x}{L},\,\,y = 0\\
+ 0,y>0\\
+ 1-\frac{x}{L},y = 0\\
  \end{cases}
 $$
 
