@@ -1,4 +1,4 @@
-# [ZZ2Z2216班的简单点名程序](https://github.com/OctagonalStar/2216s-Name-Chooser)
+# [简单点名程序](https://github.com/OctagonalStar/2216s-Name-Chooser)
 ## 已实现功能 Feature
 #### 主程序(`main.py`)
 - 侧栏加载
