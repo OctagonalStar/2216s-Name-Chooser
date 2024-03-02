@@ -8,7 +8,7 @@ unsigned int all = 0;
 
 
 bool is_input_allow(unsigned int ac, unsigned int rp){
-    if(rp && ac && all && rp <= ac && ac < all){
+    if(all && rp <= ac && ac < all){
         return true;
     }
     return false;
