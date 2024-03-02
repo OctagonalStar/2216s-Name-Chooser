@@ -1,4 +1,4 @@
-# ZZ2Z2216班的简单点名程序
+# [ZZ2Z2216班的简单点名程序](https://github.com/OctagonalStar/2216s-Name-Chooser)
 ## 已实现功能 Feature
 #### 主程序(`main.py`)
 - 侧栏加载
@@ -21,6 +21,7 @@
 - 保护特定文件夹内文件 防止删除及修改
 #### 条件概率推算(`rate_predict.cpp`)
 - 递归推算
+- 动态规划
 
 ## 待办清单 TODO List
 - 在末页支持以视频展示
